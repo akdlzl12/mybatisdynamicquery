@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.sample.mybatis.dynamic.mappers.EmployeeMapper">
+
+	<sql id="empselect">
+		select
+			employee_id				id,
+			first_name				firstName,
+			last_name				lastName,
+			phone_number			phoneNumber,
+			email					email,
+			hire_date				hireDate,
+			job_id					jobId,
+			salary					salary,
+			commission_pct			commissionPct,
+			manager_id				managerId,
+			department_id			departmentId
+		from
+			employees
+	</sql>
+	
+	<select id="getAllSelect" parameterType="Criteria" resultType="Employee">
+		<include refid="empselect"></include>
+		<where>
+			<if test="opt != null">
+				<choose>
+					<when test="opt = 'name'">
+						and first_name = #{keyword}
+					</when>
+					<when test="opt = 'phone'">
+						and phone_number = #{keyword}
+					</when>
+				</choose>
+			</if>
+			<if test="detailSearch = 'Y'">
+				<if test="depts != null">
+					and department_id in 
+					<foreach collection="depts" index="index" item="no" separator="," open="(" close=")">
+						#{no}
+					</foreach>
+				</if>
+				<if test="jobs != null">
+					and job_id in 
+					<foreach collection="jobs" index="index" item="jobname" separator="," open="(" close=")">
+						#{jobname}
+					</foreach>
+				</if>
+				<if test="minSalary != null and maxSalary != null">
+					<![CDATA[
+						and salary <= #{minSalary}
+						and salary >= #{maxSalary} 
+					]]>
+				</if>
+				<if test="minSalary != null">
+					<![CDATA[
+						and salary <= #{minSalary}
+					]]>
+				</if>
+				<if test="maxSalary != null">
+					<![CDATA[
+						and salary <= #{minSalary} 
+					]]>
+				</if>
+				<if test="beginDate != null and endDate != null">
+					<![CDATA[
+						and to_char(hire_date, 'yyyy') <= to_char(#{beginDate}, 'yyyy')
+						and to_char(hire_date, 'yyyy') >= to_char(#{endDate}, 'yyyy') 
+					]]>
+				</if>
+				<if test="beginDate != null">
+					<![CDATA[
+						and to_char(hire_date, 'yyyy') <= to_char(#{beginDate}, 'yyyy')
+					]]>
+				</if>
+				<if test="endDate != null">
+					<![CDATA[
+						and to_char(hire_date, 'yyyy') >= to_char(#{endDate}, 'yyyy')
+					]]>
+				</if>
+			</if>
+		</where>
+	</select>
+</mapper>
